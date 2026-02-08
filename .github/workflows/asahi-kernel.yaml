@@ -1,0 +1,83 @@
+# Current status:
+# The kernel builds and able to install it. It boots and I'm able to access
+# tty, but GUI is not working.
+name: Build Asahi Kernel (ARM)
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: 'Asahi Linux commit SHA'
+        required: true
+        default: 'b0b5bbf9f67e9063af591e7a1187d37d0f2b8e29'
+
+jobs:
+  build:
+    name: Build Asahi Kernel on ARM
+    runs-on: ubuntu-24.04-arm
+
+    env:
+      COMMIT_SHA: ${{ github.event.inputs.commit }}
+      ARCH: arm64
+
+    steps:
+      - name: Checkout Asahi Linux kernel
+        uses: actions/checkout@v4
+        with:
+          repository: AsahiLinux/linux
+          ref: ${{ env.COMMIT_SHA }}
+          fetch-depth: 1
+
+      - name: Install build dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            build-essential \
+            bc \
+            bison \
+            flex \
+            libssl-dev \
+            libelf-dev \
+            libncurses-dev \
+            dwarves \
+            rsync \
+            git \
+            fakeroot \
+            ccache \
+            kmod \
+            gettext \
+            libdw-dev \
+            wget \
+            debhelper
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Fetch official Asahi kernel config (PKGBUILD)
+        run: |
+          wget -O config \
+            https://raw.githubusercontent.com/asahi-alarm/PKGBUILDs/main/linux-asahi/config
+
+      - name: Configure kernel (Asahi ALARM config)
+        run: |
+          cat config > .config
+          sed -i 's/CONFIG_LOCALVERSION=.*/CONFIG_LOCALVERSION="-asahi-fairydust"/' .config
+
+      - name: Build Debian kernel packages
+        run: |
+          make -j$(nproc) \
+            bindeb-pkg
+
+      - name: Show generated packages
+        run: |
+          ls -lh ..
+
+      - name: Collect Debian packages
+        run: |
+          mkdir -p artifacts
+          mv ../*.deb artifacts/
+
+      - name: Upload Debian kernel packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: asahi-kernel-debs
+          path: artifacts/
