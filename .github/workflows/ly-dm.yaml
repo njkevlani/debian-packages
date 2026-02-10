@@ -1,0 +1,98 @@
+name: Build ly for Debian
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Ly release tag'
+        required: true
+        default: 'v1.3.2'
+
+jobs:
+  build-deb:
+    strategy:
+      matrix:
+        include:
+          - arch: arm64
+            builder: ubuntu-24.04-arm
+          - arch: x86
+            builder: ubuntu-latest
+
+    name: Build
+    runs-on: ${{ matrix.builder }}
+
+    env:
+      VERSION: ${{ github.event.inputs.version }}
+      ARCH: ${{ matrix.arch }}
+
+    steps:
+      - name: Checkout ly
+        uses: actions/checkout@v4
+        with:
+          repository: fairyglade/ly
+          ref: ${{ env.VERSION }}
+          fetch-depth: 1
+
+      - uses: mlugg/setup-zig@v2
+
+      - name: Install build dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            build-essential \
+            pkg-config \
+            libpam0g-dev \
+            libxcb-xkb-dev \
+            libxkbcommon-dev \
+            libxkbcommon-x11-dev \
+            libxcb-randr0-dev \
+            libxcb-xinerama0-dev \
+            libxcb-ewmh-dev \
+            libxcb-icccm4-dev \
+            libncurses-dev \
+            libtinfo-dev \
+            debhelper \
+            fakeroot
+
+      - name: Build ly
+        run: |
+          zig build -Dcpu=baseline
+
+      - name: Prepare Debian package structure
+        run: |
+          mkdir -p debian/pkg/DEBIAN
+          mkdir -p debian/pkg/usr/bin
+          mkdir -p debian/pkg/etc/ly
+          mkdir -p debian/pkg/etc/pam.d
+          mkdir -p debian/pkg/usr/lib/systemd/system
+
+          install -m 0755 zig-out/bin/ly debian/pkg/usr/bin/ly
+          install -m 0644 res/config.ini debian/pkg/etc/ly/
+          install -m 0644 res/setup.sh debian/pkg/etc/ly/
+          install -m 0644 res/pam.d/ly-linux debian/pkg/etc/pam.d/
+          install -m 0644 res/pam.d/ly-linux-autologin debian/pkg/etc/pam.d/
+          install -m 0644 res/ly@.service debian/pkg/usr/lib/systemd/system/ly@.service
+
+          cat <<EOF > debian/pkg/DEBIAN/control
+          Package: ly
+          Version: ${VERSION#v}
+          Section: x11
+          Priority: optional
+          Architecture: ${ARCH}
+          Maintainer: Your Name <you@example.com>
+          Depends: libc6, libpam0g, libxcb1, libxkbcommon0
+          Description: TUI display manager
+           ly is a lightweight TUI display manager for Linux
+           and BSD, written in Zig.
+          EOF
+
+      - name: Build .deb package
+        run: |
+          fakeroot dpkg-deb --build debian/pkg ly_${VERSION#v}_a${ARCH}.deb
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ly-deb-${{ env.ARCH }}
+          path: |
+            ly*.deb
