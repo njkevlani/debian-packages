@@ -56,22 +56,11 @@ jobs:
 
       - name: Build ly
         run: |
-          zig build -Dcpu=baseline
+          zig build -Dcpu=baseline -Ddest_directory=debian/pkg/ installexe
 
       - name: Prepare Debian package structure
         run: |
           mkdir -p debian/pkg/DEBIAN
-          mkdir -p debian/pkg/usr/bin
-          mkdir -p debian/pkg/etc/ly
-          mkdir -p debian/pkg/etc/pam.d
-          mkdir -p debian/pkg/usr/lib/systemd/system
-
-          install -m 0755 zig-out/bin/ly debian/pkg/usr/bin/ly
-          install -m 0644 res/config.ini debian/pkg/etc/ly/
-          install -m 0644 res/setup.sh debian/pkg/etc/ly/
-          install -m 0644 res/pam.d/ly-linux debian/pkg/etc/pam.d/
-          install -m 0644 res/pam.d/ly-linux-autologin debian/pkg/etc/pam.d/
-          install -m 0644 res/ly@.service debian/pkg/usr/lib/systemd/system/ly@.service
 
           cat <<EOF > debian/pkg/DEBIAN/control
           Package: ly
