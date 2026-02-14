@@ -6,8 +6,11 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 	dh $@
 
 override_dh_auto_build:
-	./build.sh -t dark -p unix
-	./build.sh -t light -p unix
+	sed -i 's#-z -e#-o#' build.sh
+	sed -i 's#"$$SVG_DIM\*$$1"#"$$SVG_DIM*$$1/1"#' build.sh
+	sed -i 's#"$$SVG_DPI\*$$1"#"$$SVG_DPI*$$1/1"#' build.sh
+	xvfb-run --auto-display ./build.sh --max-dpi xxxhd --type dark --platform unix
+	xvfb-run --auto-display ./build.sh --max-dpi xxxhd --type light --platform unix
 
 override_dh_auto_install:
 	:

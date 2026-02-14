@@ -6,7 +6,9 @@ Build-Depends:
  debhelper-compat (= 13),
  inkscape,
  x11-apps,
- bc
+ bc,
+ xvfb,
+ xauth
 Standards-Version: 4.7.3
 Rules-Requires-Root: no
 Homepage: https://github.com/keeferrourke/capitaine-cursors

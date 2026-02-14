@@ -1,4 +1,2 @@
-dist/dark/index.theme usr/share/icons/capitaine-cursors/
-dist/dark/cursors usr/share/icons/capitaine-cursors/
-dist/light/index.theme usr/share/icons/capitaine-cursors-light/
-dist/light/cursors usr/share/icons/capitaine-cursors-light/
+dist/dark/* usr/share/icons/capitaine-cursors/
+dist/light/* usr/share/icons/capitaine-cursors-light/
