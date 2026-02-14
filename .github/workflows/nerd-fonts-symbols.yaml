@@ -8,6 +8,9 @@ on:
         required: true
         default: "v3.4.0"
 
+permissions:
+  contents: write
+
 jobs:
   build-deb:
     name: Build nerd-fonts-symbols Debian package
@@ -76,3 +79,15 @@ jobs:
           name: nerd-fonts-symbols-deb
           path: |
             nerd-fonts-symbols_*_all.deb
+
+      - name: Create or update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: nerd-fonts-symbols-${{ env.VERSION }}
+          name: nerd-fonts-symbols ${{ env.VERSION }}
+          draft: false
+          prerelease: false
+          files: |
+            nerd-fonts-symbols_*_all.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

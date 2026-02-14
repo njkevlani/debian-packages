@@ -13,6 +13,7 @@ Build-Depends:
  libgbm-dev,
  libxkbcommon-dev,
  libegl1-mesa-dev,
+ libegl-dev,
  libwayland-dev,
  libinput-dev,
  libdbus-1-dev,

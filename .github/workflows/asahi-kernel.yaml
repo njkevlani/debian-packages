@@ -11,6 +11,9 @@ on:
         required: true
         default: 'b0b5bbf9f67e9063af591e7a1187d37d0f2b8e29'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build Asahi Kernel on ARM
@@ -81,3 +84,15 @@ jobs:
         with:
           name: asahi-kernel-debs
           path: artifacts/
+
+      - name: Create or update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: asahi-kernel-${{ env.COMMIT_SHA }}
+          name: asahi-kernel ${{ env.COMMIT_SHA }}
+          draft: false
+          prerelease: false
+          files: |
+            artifacts/*.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

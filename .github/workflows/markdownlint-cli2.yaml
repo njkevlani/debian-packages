@@ -1,19 +1,19 @@
-name: Build capitaine-cursors for Debian
+name: Build markdownlint-cli2 for Debian
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Capitaine cursors release tag"
+        description: "markdownlint-cli2 release tag"
         required: true
-        default: "r4"
+        default: "v0.18.1"
 
 permissions:
   contents: write
 
 jobs:
   build-deb:
-    name: Build capitaine-cursors Debian package
+    name: Build markdownlint-cli2 Debian package
     runs-on: ubuntu-24.04
     container: debian:sid
 
@@ -38,21 +38,19 @@ jobs:
             equivs \
             xz-utils
           mk-build-deps -i -t "apt-get -y --no-install-recommends" \
-            ./packaging/capitaine-cursors-deb/debian/control
+            ./packaging/markdownlint-cli2-deb/debian/control
 
       - name: Prepare Debian packaging
         run: |
           set -e
-          TAG_VERSION="${VERSION#v}"
-          UPSTREAM_VERSION="${TAG_VERSION#r}"
+          UPSTREAM_VERSION="${VERSION#v}"
           curl -L \
-            -o "capitaine-cursors_${UPSTREAM_VERSION}.orig.tar.gz" \
-            "https://github.com/keeferrourke/capitaine-cursors/archive/refs/tags/${VERSION}.tar.gz"
-          tar -xzf "capitaine-cursors_${UPSTREAM_VERSION}.orig.tar.gz"
-          mv "capitaine-cursors-${TAG_VERSION}" "capitaine-cursors-${UPSTREAM_VERSION}"
-          cd "capitaine-cursors-${UPSTREAM_VERSION}"
+            -o "markdownlint-cli2_${UPSTREAM_VERSION}.orig.tar.gz" \
+            "https://github.com/DavidAnson/markdownlint-cli2/archive/refs/tags/v${UPSTREAM_VERSION}.tar.gz"
+          tar -xzf "markdownlint-cli2_${UPSTREAM_VERSION}.orig.tar.gz"
+          cd "markdownlint-cli2-${UPSTREAM_VERSION}"
 
-          cp -a ../packaging/capitaine-cursors-deb/debian ./debian
+          cp -a ../packaging/markdownlint-cli2-deb/debian ./debian
           chmod +x debian/rules
           sed \
             -e "s/@UPSTREAM_VERSION@/${UPSTREAM_VERSION}/" \
@@ -62,27 +60,26 @@ jobs:
 
       - name: Build Debian package
         run: |
-          TAG_VERSION="${VERSION#v}"
-          UPSTREAM_VERSION="${TAG_VERSION#r}"
-          cd "capitaine-cursors-${UPSTREAM_VERSION}"
+          UPSTREAM_VERSION="${VERSION#v}"
+          cd "markdownlint-cli2-${UPSTREAM_VERSION}"
           dpkg-buildpackage -us -uc -b
           rm -f ../*.buildinfo ../*.changes
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: capitaine-cursors-deb
+          name: markdownlint-cli2-deb
           path: |
-            capitaine-cursors_*_all.deb
+            markdownlint-cli2_*_all.deb
 
       - name: Create or update Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: capitaine-cursors-${{ env.VERSION }}
-          name: capitaine-cursors ${{ env.VERSION }}
+          tag_name: markdownlint-cli2-${{ env.VERSION }}
+          name: markdownlint-cli2 ${{ env.VERSION }}
           draft: false
           prerelease: false
           files: |
-            capitaine-cursors_*_all.deb
+            markdownlint-cli2_*_all.deb
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

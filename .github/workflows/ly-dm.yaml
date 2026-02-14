@@ -8,6 +8,9 @@ on:
         required: true
         default: 'v1.3.2'
 
+permissions:
+  contents: write
+
 jobs:
   build-deb:
     strategy:
@@ -79,3 +82,15 @@ jobs:
           name: ly-deb-${{ matrix.arch }}
           path: |
             ly_*_${{ matrix.arch }}.deb
+
+      - name: Create or update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ly-${{ env.VERSION }}
+          name: ly ${{ env.VERSION }}
+          draft: false
+          prerelease: false
+          files: |
+            ly_*_${{ matrix.arch }}.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -8,6 +8,9 @@ on:
         required: true
         default: "v2.5.0"
 
+permissions:
+  contents: write
+
 jobs:
   build-deb:
     name: Build rofi-calc Debian package
@@ -76,3 +79,15 @@ jobs:
           name: rofi-calc-deb-${{ matrix.arch }}
           path: |
             rofi-calc_*_${{ matrix.arch }}.deb
+
+      - name: Create or update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: rofi-calc-${{ env.VERSION }}
+          name: rofi-calc ${{ env.VERSION }}
+          draft: false
+          prerelease: false
+          files: |
+            rofi-calc_*_${{ matrix.arch }}.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

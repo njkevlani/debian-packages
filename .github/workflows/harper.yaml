@@ -8,6 +8,9 @@ on:
         required: true
         default: "v1.7.0"
 
+permissions:
+  contents: write
+
 jobs:
   build-deb:
     name: Build harper-ls Debian package
@@ -76,3 +79,15 @@ jobs:
           name: harper-ls-deb-${{ matrix.arch }}
           path: |
             harper-ls_*_${{ matrix.arch }}.deb
+
+      - name: Create or update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: harper-${{ env.VERSION }}
+          name: harper ${{ env.VERSION }}
+          draft: false
+          prerelease: false
+          files: |
+            harper-ls_*_${{ matrix.arch }}.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

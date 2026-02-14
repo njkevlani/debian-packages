@@ -8,6 +8,9 @@ on:
         required: true
         default: 'v1.2.3'
 
+permissions:
+  contents: write
+
 jobs:
   build-deb:
     strategy:
@@ -83,3 +86,15 @@ jobs:
           name: ghostty-deb-${{ matrix.arch }}
           path: |
             ghostty_*_${{ matrix.arch }}.deb
+
+      - name: Create or update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ghostty-${{ env.VERSION }}
+          name: ghostty ${{ env.VERSION }}
+          draft: false
+          prerelease: false
+          files: |
+            ghostty_*_${{ matrix.arch }}.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
