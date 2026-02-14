@@ -9,8 +9,8 @@ override_dh_auto_build:
 	sed -i 's#-z -e#-o#' build.sh
 	sed -i 's#"$$SVG_DIM\*$$1"#"$$SVG_DIM*$$1/1"#' build.sh
 	sed -i 's#"$$SVG_DPI\*$$1"#"$$SVG_DPI*$$1/1"#' build.sh
-	xvfb-run --auto-display ./build.sh --max-dpi xxxhd --type dark --platform unix
-	xvfb-run --auto-display ./build.sh --max-dpi xxxhd --type light --platform unix
+	xvfb-run -a ./build.sh --max-dpi xxxhd --type dark --platform unix
+	xvfb-run -a ./build.sh --max-dpi xxxhd --type light --platform unix
 
 override_dh_auto_install:
 	:
