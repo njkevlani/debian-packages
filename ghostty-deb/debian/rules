@@ -1,0 +1,21 @@
+#!/usr/bin/make -f
+export DH_VERBOSE = 1
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+export ZIG_GLOBAL_CACHE_DIR = /tmp/offline-cache
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+	mkdir -p /tmp/offline-cache
+	sed -i 's|https://github.com/mbadolato/iTerm2-Color-Schemes.*|https://deps.files.ghostty.org/ghostty-themes-release-20260202-151632-49169e9.tgz",|' build.zig.zon
+	sed -i 's|N-V-__8AALIsAwDyo88G5mGJGN2lSVmmFMx4YePfUvp_2o3Y|N-V-__8AAKlTAwClvdUfsAoiLgM6sb2NPZNnS6wzCiIs252Z|' build.zig.zon
+	sed -i 's|https://github.com/mbadolato/iTerm2-Color-Schemes.*|https://deps.files.ghostty.org/ghostty-themes-release-20260202-151632-49169e9.tgz|' build.zig.zon.txt
+	./nix/build-support/fetch-zig-cache.sh
+
+override_dh_auto_install:
+	DESTDIR=$(CURDIR)/debian/ghostty zig build \
+	  --prefix "/usr" \
+	  --system /tmp/offline-cache/p \
+	  -Doptimize=ReleaseFast \
+	  -Dcpu=baseline

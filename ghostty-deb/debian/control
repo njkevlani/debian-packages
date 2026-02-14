@@ -1,0 +1,31 @@
+Source: ghostty
+Section: x11
+Priority: optional
+Maintainer: Debian Packaging CI <ci@example.com>
+Build-Depends:
+ debhelper-compat (= 13),
+ build-essential,
+ pkg-config,
+ gettext,
+ blueprint-compiler,
+ pandoc,
+ bzip2,
+ libxml2-utils,
+ libonig-dev,
+ libgtk4-layer-shell-dev,
+ libfreetype6-dev,
+ libgtk-4-dev,
+ libadwaita-1-dev,
+ libglib2.0-dev,
+ libpango1.0-dev,
+ libcairo2-dev,
+ libgdk-pixbuf-2.0-dev
+Standards-Version: 4.7.3
+Rules-Requires-Root: no
+Homepage: https://github.com/ghostty-org/ghostty
+
+Package: ghostty
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Fast, feature-rich, cross-platform terminal emulator
+ Ghostty uses platform-native UI and GPU acceleration.

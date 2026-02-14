@@ -1,0 +1,9 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: ghostty
+Upstream-Contact: https://github.com/ghostty-org/ghostty
+Source: https://github.com/ghostty-org/ghostty
+
+Files: *
+Copyright: 2023-2026 ghostty contributors
+License: MIT
+Comment: See LICENSE in the upstream source.

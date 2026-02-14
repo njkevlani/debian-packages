@@ -15,8 +15,8 @@ jobs:
         include:
           - arch: arm64
             builder: ubuntu-24.04-arm
-          - arch: x86
-            builder: ubuntu-latest
+          - arch: amd64
+            builder: ubuntu-24.04
 
     name: Build
     runs-on: ${{ matrix.builder }}
@@ -27,87 +27,52 @@ jobs:
 
     env:
       VERSION: ${{ github.event.inputs.version }}
-      ARCH: ${{ matrix.arch }}
+      DEB_BUILD_OPTIONS: nocheck
 
     steps:
+      - name: Checkout packaging repo
+        uses: actions/checkout@v4
+        with:
+          path: packaging
+
       - name: Install build dependencies
         run: |
           apt-get update
-
-          apt-get install -y \
-            xz-utils \
-            tar \
+          apt-get install -y --no-install-recommends \
+            ca-certificates \
             curl \
-            build-essential \
-            pkg-config \
-            gettext \
-            blueprint-compiler \
-            pandoc \
-            bzip2 \
-            libxml2-utils \
-            libonig-dev \
-            libgtk4-layer-shell-dev \
-            libgtk4-layer-shell0 \
-            libfreetype6-dev \
-            libgtk-4-dev \
-            libadwaita-1-dev \
-            libglib2.0-dev \
-            libpango1.0-dev \
-            libcairo2-dev \
-            libgdk-pixbuf-2.0-dev
+            dpkg-dev \
+            devscripts \
+            equivs \
+            xz-utils
+          mk-build-deps -i -t "apt-get -y --no-install-recommends" \
+            ./packaging/ghostty-deb/debian/control
 
       - uses: mlugg/setup-zig@v2
         with:
           version: 0.14.0
-
-      - name: Checkout ghostty
-        uses: actions/checkout@v4
-        with:
-          repository: ghostty-org/ghostty
-          ref: ${{ env.VERSION }}
-          fetch-depth: 1
-
-      # needed till https://github.com/ghostty-org/ghostty/issues/9606
-      - name: Patch iterm2 themes URL and hash
+      - name: Prepare Debian packaging
         run: |
-          sed -i 's|https://github.com/mbadolato/iTerm2-Color-Schemes.*|https://deps.files.ghostty.org/ghostty-themes-release-20260202-151632-49169e9.tgz",|' build.zig.zon
-          sed -i 's|N-V-__8AALIsAwDyo88G5mGJGN2lSVmmFMx4YePfUvp_2o3Y|N-V-__8AAKlTAwClvdUfsAoiLgM6sb2NPZNnS6wzCiIs252Z|' build.zig.zon
-          sed -i 's|https://github.com/mbadolato/iTerm2-Color-Schemes.*|https://deps.files.ghostty.org/ghostty-themes-release-20260202-151632-49169e9.tgz|' build.zig.zon.txt
+          set -e
+          UPSTREAM_VERSION="${VERSION#v}"
+          curl -L \
+            -o "ghostty_${UPSTREAM_VERSION}.orig.tar.gz" \
+            "https://github.com/ghostty-org/ghostty/archive/refs/tags/v${UPSTREAM_VERSION}.tar.gz"
+          tar -xzf "ghostty_${UPSTREAM_VERSION}.orig.tar.gz"
+          cd "ghostty-${UPSTREAM_VERSION}"
 
-      - name: Prepare
+          cp -a ../packaging/ghostty-deb/debian ./debian
+          chmod +x debian/rules
+
+      - name: Build Debian package
         run: |
-          ZIG_GLOBAL_CACHE_DIR=/tmp/offline-cache ./nix/build-support/fetch-zig-cache.sh
-
-      - name: Build ghostty
-        run: |
-          DESTDIR=debian/pkg zig build \
-            --prefix "/usr" \
-            --system /tmp/offline-cache/p \
-            -Doptimize=ReleaseFast \
-            -Dcpu=baseline
-
-
-      - name: Prepare Debian package structure
-        run: |
-          mkdir -p debian/pkg/DEBIAN
-
-          cat <<EOF > debian/pkg/DEBIAN/control
-          Package: ghostty
-          Version: ${VERSION#v}
-          Depends: libgtk4-layer-shell0 libadwaita-1-0
-          Priority: optional
-          Architecture: ${ARCH}
-          Maintainer: Your Name <you@example.com>
-          Description: Ghostty is a fast, feature-rich, and cross-platform terminal emulator that uses platform-native UI and GPU acceleration.
-          EOF
-
-      - name: Build .deb package
-        run: |
-          fakeroot dpkg-deb --build debian/pkg ghostty_${VERSION#v}_${ARCH}.deb
+          UPSTREAM_VERSION="${VERSION#v}"
+          cd "ghostty-${UPSTREAM_VERSION}"
+          dpkg-buildpackage -us -uc -b
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ghostty-deb-${{ env.ARCH }}
+          name: ghostty-deb-${{ matrix.arch }}
           path: |
-            ghostty*.deb
+            ghostty_*_${{ matrix.arch }}.deb

@@ -1,0 +1,26 @@
+Source: ly
+Section: x11
+Priority: optional
+Maintainer: Debian Packaging CI <ci@example.com>
+Build-Depends:
+ debhelper-compat (= 13),
+ pkg-config,
+ libpam0g-dev,
+ libxcb-xkb-dev,
+ libxkbcommon-dev,
+ libxkbcommon-x11-dev,
+ libxcb-randr0-dev,
+ libxcb-xinerama0-dev,
+ libxcb-ewmh-dev,
+ libxcb-icccm4-dev,
+ libncurses-dev,
+ libtinfo-dev
+Standards-Version: 4.7.3
+Rules-Requires-Root: no
+Homepage: https://github.com/fairyglade/ly
+
+Package: ly
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: TUI display manager
+ ly is a lightweight TUI display manager for Linux and BSD, written in Zig.

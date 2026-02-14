@@ -15,66 +15,66 @@ jobs:
   build:
     name: Build Asahi Kernel on ARM
     runs-on: ubuntu-24.04-arm
+    container: debian:sid
 
     env:
       COMMIT_SHA: ${{ github.event.inputs.commit }}
       ARCH: arm64
 
     steps:
-      - name: Checkout Asahi Linux kernel
+      - name: Checkout packaging repo
         uses: actions/checkout@v4
         with:
-          repository: AsahiLinux/linux
-          ref: ${{ env.COMMIT_SHA }}
-          fetch-depth: 1
+          path: packaging
 
       - name: Install build dependencies
         run: |
-          sudo apt update
-          sudo apt install -y \
-            build-essential \
-            bc \
-            bison \
-            flex \
-            libssl-dev \
-            libelf-dev \
-            libncurses-dev \
-            dwarves \
-            rsync \
-            git \
-            fakeroot \
-            ccache \
-            kmod \
-            gettext \
-            libdw-dev \
-            wget \
-            debhelper
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            ca-certificates \
+            curl \
+            dpkg-dev \
+            devscripts \
+            equivs \
+            xz-utils
+          mk-build-deps -i -t "apt-get -y --no-install-recommends" \
+            ./packaging/asahi-kernel-deb/debian/control
 
       - uses: actions-rust-lang/setup-rust-toolchain@v1
 
+      - name: Download Asahi Linux kernel
+        run: |
+          curl -L \
+            -o "linux_${COMMIT_SHA}.tar.gz" \
+            "https://github.com/AsahiLinux/linux/archive/${COMMIT_SHA}.tar.gz"
+          tar -xzf "linux_${COMMIT_SHA}.tar.gz"
+          mv "linux-${COMMIT_SHA}" linux
+
       - name: Fetch official Asahi kernel config (PKGBUILD)
         run: |
-          wget -O config \
+          curl -L -o linux/config \
             https://raw.githubusercontent.com/asahi-alarm/PKGBUILDs/main/linux-asahi/config
 
       - name: Configure kernel (Asahi ALARM config)
         run: |
+          cd linux
           cat config > .config
           sed -i 's/CONFIG_LOCALVERSION=.*/CONFIG_LOCALVERSION="-asahi-fairydust"/' .config
 
       - name: Build Debian kernel packages
         run: |
+          cd linux
           make -j$(nproc) \
             bindeb-pkg
 
       - name: Show generated packages
         run: |
-          ls -lh ..
+          ls -lh
 
       - name: Collect Debian packages
         run: |
           mkdir -p artifacts
-          mv ../*.deb artifacts/
+          mv *.deb artifacts/
 
       - name: Upload Debian kernel packages
         uses: actions/upload-artifact@v4

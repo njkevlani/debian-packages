@@ -15,73 +15,60 @@ jobs:
         include:
           - arch: arm64
             builder: ubuntu-24.04-arm
-          - arch: x86
-            builder: ubuntu-latest
+          - arch: amd64
+            builder: ubuntu-24.04
 
     name: Build
     runs-on: ${{ matrix.builder }}
+    container: debian:sid
 
     env:
       VERSION: ${{ github.event.inputs.version }}
-      ARCH: ${{ matrix.arch }}
+      DEB_BUILD_OPTIONS: nocheck
 
     steps:
-      - name: Checkout ly
+      - name: Checkout packaging repo
         uses: actions/checkout@v4
         with:
-          repository: fairyglade/ly
-          ref: ${{ env.VERSION }}
-          fetch-depth: 1
-
-      - uses: mlugg/setup-zig@v2
+          path: packaging
 
       - name: Install build dependencies
         run: |
-          sudo apt update
-          sudo apt install -y \
-            build-essential \
-            pkg-config \
-            libpam0g-dev \
-            libxcb-xkb-dev \
-            libxkbcommon-dev \
-            libxkbcommon-x11-dev \
-            libxcb-randr0-dev \
-            libxcb-xinerama0-dev \
-            libxcb-ewmh-dev \
-            libxcb-icccm4-dev \
-            libncurses-dev \
-            libtinfo-dev \
-            debhelper \
-            fakeroot
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            ca-certificates \
+            curl \
+            dpkg-dev \
+            devscripts \
+            equivs \
+            xz-utils
+          mk-build-deps -i -t "apt-get -y --no-install-recommends" \
+            ./packaging/ly-deb/debian/control
 
-      - name: Build ly
+      - uses: mlugg/setup-zig@v2
+
+      - name: Prepare Debian packaging
         run: |
-          zig build -Dcpu=baseline -Ddest_directory=debian/pkg/ installexe
+          set -e
+          UPSTREAM_VERSION="${VERSION#v}"
+          curl -L \
+            -o "ly_${UPSTREAM_VERSION}.orig.tar.gz" \
+            "https://github.com/fairyglade/ly/archive/refs/tags/v${UPSTREAM_VERSION}.tar.gz"
+          tar -xzf "ly_${UPSTREAM_VERSION}.orig.tar.gz"
+          cd "ly-${UPSTREAM_VERSION}"
 
-      - name: Prepare Debian package structure
+          cp -a ../packaging/ly-deb/debian ./debian
+          chmod +x debian/rules
+
+      - name: Build Debian package
         run: |
-          mkdir -p debian/pkg/DEBIAN
-
-          cat <<EOF > debian/pkg/DEBIAN/control
-          Package: ly
-          Version: ${VERSION#v}
-          Section: x11
-          Priority: optional
-          Architecture: ${ARCH}
-          Maintainer: Your Name <you@example.com>
-          Depends: libc6, libpam0g, libxcb1, libxkbcommon0
-          Description: TUI display manager
-           ly is a lightweight TUI display manager for Linux
-           and BSD, written in Zig.
-          EOF
-
-      - name: Build .deb package
-        run: |
-          fakeroot dpkg-deb --build debian/pkg ly_${VERSION#v}_a${ARCH}.deb
+          UPSTREAM_VERSION="${VERSION#v}"
+          cd "ly-${UPSTREAM_VERSION}"
+          dpkg-buildpackage -us -uc -b
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ly-deb-${{ env.ARCH }}
+          name: ly-deb-${{ matrix.arch }}
           path: |
-            ly*.deb
+            ly_*_${{ matrix.arch }}.deb

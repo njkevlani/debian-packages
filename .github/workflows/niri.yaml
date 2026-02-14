@@ -58,11 +58,6 @@ jobs:
 
           cp -a ../packaging/niri-deb/debian ./debian
           chmod +x debian/rules
-          sed \
-            -e "s/@UPSTREAM_VERSION@/${UPSTREAM_VERSION}/" \
-            -e "s/@DATE@/$(date -R)/" \
-            debian/changelog.in > debian/changelog
-          rm -f debian/changelog.in
 
       - name: Build Debian package
         run: |
@@ -76,5 +71,3 @@ jobs:
           name: niri-deb-${{ matrix.arch }}
           path: |
             niri_*_${{ matrix.arch }}.deb
-            niri_*_${{ matrix.arch }}.buildinfo
-            niri_*_${{ matrix.arch }}.changes

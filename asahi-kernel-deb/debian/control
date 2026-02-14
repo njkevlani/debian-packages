@@ -1,0 +1,29 @@
+Source: asahi-kernel
+Section: kernel
+Priority: optional
+Maintainer: Debian Packaging CI <ci@example.com>
+Build-Depends:
+ build-essential,
+ bc,
+ bison,
+ flex,
+ libssl-dev,
+ libelf-dev,
+ libncurses-dev,
+ dwarves,
+ rsync,
+ git,
+ fakeroot,
+ ccache,
+ kmod,
+ gettext,
+ libdw-dev
+Standards-Version: 4.7.3
+Rules-Requires-Root: no
+Homepage: https://github.com/AsahiLinux/linux
+
+Package: asahi-kernel-build-deps
+Architecture: all
+Depends: ${misc:Depends}
+Description: Build dependencies for Asahi Linux kernel
+ This package exists to install build dependencies for the Asahi kernel.
