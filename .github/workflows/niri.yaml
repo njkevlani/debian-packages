@@ -8,6 +8,9 @@ on:
         required: true
         default: "v25.11"
 
+permissions:
+  contents: write
+
 jobs:
   build-deb:
     name: Build niri Debian package

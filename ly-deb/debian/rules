@@ -6,7 +6,7 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 	dh $@
 
 override_dh_auto_build:
-	:
+	zig build -Dcpu=baseline
 
 override_dh_auto_install:
 	DESTDIR=$(CURDIR)/debian/ly zig build installexe \
