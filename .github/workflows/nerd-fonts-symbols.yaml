@@ -33,6 +33,7 @@ jobs:
             dpkg-dev \
             devscripts \
             equivs \
+            unzip \
             xz-utils
           mk-build-deps -i -t "apt-get -y --no-install-recommends" \
             ./packaging/nerd-fonts-symbols-deb/debian/control
@@ -43,14 +44,13 @@ jobs:
           UPSTREAM_VERSION="${VERSION#v}"
           mkdir -p "nerd-fonts-symbols-${UPSTREAM_VERSION}"
           curl -L \
-            -o "nerd-fonts-symbols-${UPSTREAM_VERSION}/SymbolsNerdFont-Regular.ttf" \
-            "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/v${UPSTREAM_VERSION}/patched-fonts/NerdFontsSymbolsOnly/SymbolsNerdFont-Regular.ttf"
-          curl -L \
-            -o "nerd-fonts-symbols-${UPSTREAM_VERSION}/10-nerd-font-symbols.conf" \
-            "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/v${UPSTREAM_VERSION}/10-nerd-font-symbols.conf"
-          curl -L \
-            -o "nerd-fonts-symbols-${UPSTREAM_VERSION}/LICENSE" \
-            "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/v${UPSTREAM_VERSION}/LICENSE"
+            -o "nerd-fonts-symbols-${UPSTREAM_VERSION}/NerdFontsSymbolsOnly.zip" \
+            "https://github.com/ryanoasis/nerd-fonts/releases/download/v${UPSTREAM_VERSION}/NerdFontsSymbolsOnly.zip"
+          unzip -j -o \
+            "nerd-fonts-symbols-${UPSTREAM_VERSION}/NerdFontsSymbolsOnly.zip" \
+            "SymbolsNerdFont*.ttf" "10-nerd-font-symbols.conf" "LICENSE" \
+            -d "nerd-fonts-symbols-${UPSTREAM_VERSION}"
+          rm -f "nerd-fonts-symbols-${UPSTREAM_VERSION}/NerdFontsSymbolsOnly.zip"
           tar -czf "nerd-fonts-symbols_${UPSTREAM_VERSION}.orig.tar.gz" \
             "nerd-fonts-symbols-${UPSTREAM_VERSION}"
           cd "nerd-fonts-symbols-${UPSTREAM_VERSION}"
