@@ -1,0 +1,15 @@
+Source: nerd-fonts-symbols
+Section: fonts
+Priority: optional
+Maintainer: Debian Packaging CI <ci@example.com>
+Build-Depends:
+ debhelper-compat (= 13)
+Standards-Version: 4.7.3
+Rules-Requires-Root: no
+Homepage: https://github.com/ryanoasis/nerd-fonts
+
+Package: nerd-fonts-symbols
+Architecture: all
+Depends: ${misc:Depends}
+Description: Nerd Fonts symbols-only font
+ nerd-fonts-symbols provides the Symbols Nerd Font for extra glyphs.

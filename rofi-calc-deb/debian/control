@@ -1,0 +1,23 @@
+Source: rofi-calc
+Section: x11
+Priority: optional
+Maintainer: Debian Packaging CI <ci@example.com>
+Build-Depends:
+ debhelper-compat (= 13),
+ meson,
+ ninja-build,
+ pkg-config,
+ rofi-dev,
+ libglib2.0-dev,
+ libcairo2-dev,
+ libqalculate-dev
+Standards-Version: 4.7.3
+Rules-Requires-Root: no
+Homepage: https://github.com/svenstaro/rofi-calc
+
+Package: rofi-calc
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, rofi
+Suggests: qalculate-gtk
+Description: Rofi mode that evaluates calculations via qalc
+ rofi-calc is a rofi plugin that evaluates expressions using qalc.

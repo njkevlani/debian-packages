@@ -1,0 +1,4 @@
+SymbolsNerdFont-Regular.ttf usr/share/fonts/truetype/nerd-fonts/
+10-nerd-font-symbols.conf usr/share/fontconfig/conf.avail/
+10-nerd-font-symbols.conf usr/share/fontconfig/conf.d/
+LICENSE usr/share/doc/nerd-fonts-symbols/

@@ -1,0 +1,19 @@
+Source: capitaine-cursors
+Section: x11
+Priority: optional
+Maintainer: Debian Packaging CI <ci@example.com>
+Build-Depends:
+ debhelper-compat (= 13),
+ inkscape,
+ x11-apps,
+ bc
+Standards-Version: 4.7.3
+Rules-Requires-Root: no
+Homepage: https://github.com/keeferrourke/capitaine-cursors
+
+Package: capitaine-cursors
+Architecture: all
+Depends: ${misc:Depends}
+Description: macOS-inspired cursor theme based on KDE Breeze
+ Capitaine Cursors is an x-cursor theme inspired by macOS and based on KDE
+ Breeze.

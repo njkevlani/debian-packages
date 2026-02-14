@@ -1,0 +1,73 @@
+name: Build capitaine-cursors for Debian
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Capitaine cursors release tag"
+        required: true
+        default: "r4"
+
+jobs:
+  build-deb:
+    name: Build capitaine-cursors Debian package
+    runs-on: ubuntu-24.04
+    container: debian:sid
+
+    env:
+      VERSION: ${{ github.event.inputs.version }}
+      DEB_BUILD_OPTIONS: nocheck
+
+    steps:
+      - name: Checkout packaging repo
+        uses: actions/checkout@v4
+        with:
+          path: packaging
+
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            ca-certificates \
+            curl \
+            dpkg-dev \
+            devscripts \
+            equivs \
+            xz-utils
+          mk-build-deps -i -t "apt-get -y --no-install-recommends" \
+            ./packaging/capitaine-cursors-deb/debian/control
+
+      - name: Prepare Debian packaging
+        run: |
+          set -e
+          TAG_VERSION="${VERSION#v}"
+          UPSTREAM_VERSION="${TAG_VERSION#r}"
+          curl -L \
+            -o "capitaine-cursors_${UPSTREAM_VERSION}.orig.tar.gz" \
+            "https://github.com/keeferrourke/capitaine-cursors/archive/refs/tags/${VERSION}.tar.gz"
+          tar -xzf "capitaine-cursors_${UPSTREAM_VERSION}.orig.tar.gz"
+          mv "capitaine-cursors-${TAG_VERSION}" "capitaine-cursors-${UPSTREAM_VERSION}"
+          cd "capitaine-cursors-${UPSTREAM_VERSION}"
+
+          cp -a ../packaging/capitaine-cursors-deb/debian ./debian
+          chmod +x debian/rules
+          sed \
+            -e "s/@UPSTREAM_VERSION@/${UPSTREAM_VERSION}/" \
+            -e "s/@DATE@/$(date -R)/" \
+            debian/changelog.in > debian/changelog
+          rm -f debian/changelog.in
+
+      - name: Build Debian package
+        run: |
+          TAG_VERSION="${VERSION#v}"
+          UPSTREAM_VERSION="${TAG_VERSION#r}"
+          cd "capitaine-cursors-${UPSTREAM_VERSION}"
+          dpkg-buildpackage -us -uc -b
+          rm -f ../*.buildinfo ../*.changes
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: capitaine-cursors-deb
+          path: |
+            capitaine-cursors_*_all.deb

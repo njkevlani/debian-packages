@@ -1,0 +1,9 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: nerd-fonts
+Upstream-Contact: https://github.com/ryanoasis/nerd-fonts
+Source: https://github.com/ryanoasis/nerd-fonts
+
+Files: *
+Copyright: 2014-2026 Nerd Fonts contributors
+License: MIT
+Comment: See LICENSE in the upstream source.

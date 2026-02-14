@@ -1,0 +1,78 @@
+name: Build nerd-fonts-symbols for Debian
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Nerd Fonts release tag"
+        required: true
+        default: "v3.4.0"
+
+jobs:
+  build-deb:
+    name: Build nerd-fonts-symbols Debian package
+    runs-on: ubuntu-24.04
+    container: debian:sid
+
+    env:
+      VERSION: ${{ github.event.inputs.version }}
+      DEB_BUILD_OPTIONS: nocheck
+
+    steps:
+      - name: Checkout packaging repo
+        uses: actions/checkout@v4
+        with:
+          path: packaging
+
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            ca-certificates \
+            curl \
+            dpkg-dev \
+            devscripts \
+            equivs \
+            xz-utils
+          mk-build-deps -i -t "apt-get -y --no-install-recommends" \
+            ./packaging/nerd-fonts-symbols-deb/debian/control
+
+      - name: Prepare Debian packaging
+        run: |
+          set -e
+          UPSTREAM_VERSION="${VERSION#v}"
+          mkdir -p "nerd-fonts-symbols-${UPSTREAM_VERSION}"
+          curl -L \
+            -o "nerd-fonts-symbols-${UPSTREAM_VERSION}/SymbolsNerdFont-Regular.ttf" \
+            "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/v${UPSTREAM_VERSION}/patched-fonts/NerdFontsSymbolsOnly/SymbolsNerdFont-Regular.ttf"
+          curl -L \
+            -o "nerd-fonts-symbols-${UPSTREAM_VERSION}/10-nerd-font-symbols.conf" \
+            "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/v${UPSTREAM_VERSION}/10-nerd-font-symbols.conf"
+          curl -L \
+            -o "nerd-fonts-symbols-${UPSTREAM_VERSION}/LICENSE" \
+            "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/v${UPSTREAM_VERSION}/LICENSE"
+          tar -czf "nerd-fonts-symbols_${UPSTREAM_VERSION}.orig.tar.gz" \
+            "nerd-fonts-symbols-${UPSTREAM_VERSION}"
+          cd "nerd-fonts-symbols-${UPSTREAM_VERSION}"
+
+          cp -a ../packaging/nerd-fonts-symbols-deb/debian ./debian
+          chmod +x debian/rules
+          sed \
+            -e "s/@UPSTREAM_VERSION@/${UPSTREAM_VERSION}/" \
+            -e "s/@DATE@/$(date -R)/" \
+            debian/changelog.in > debian/changelog
+          rm -f debian/changelog.in
+
+      - name: Build Debian package
+        run: |
+          UPSTREAM_VERSION="${VERSION#v}"
+          cd "nerd-fonts-symbols-${UPSTREAM_VERSION}"
+          dpkg-buildpackage -us -uc -b
+          rm -f ../*.buildinfo ../*.changes
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nerd-fonts-symbols-deb
+          path: |
+            nerd-fonts-symbols_*_all.deb

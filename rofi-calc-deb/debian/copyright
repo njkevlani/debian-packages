@@ -1,0 +1,9 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: rofi-calc
+Upstream-Contact: https://github.com/svenstaro/rofi-calc
+Source: https://github.com/svenstaro/rofi-calc
+
+Files: *
+Copyright: 2016-2026 Svenstaro and contributors
+License: MIT
+Comment: See LICENSE in the upstream source.
