@@ -71,3 +71,15 @@ jobs:
           name: niri-deb-${{ matrix.arch }}
           path: |
             niri_*_${{ matrix.arch }}.deb
+
+      - name: Create or update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: niri-${{ env.VERSION }}
+          name: niri ${{ env.VERSION }}
+          draft: false
+          prerelease: false
+          files: |
+            niri_*_${{ matrix.arch }}.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
