@@ -1,0 +1,15 @@
+#!/usr/bin/make -f
+export DH_VERBOSE = 1
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	cargo build --release --locked
+	cargo run --release --locked --bin niri -- completions bash > debian/bash-completions
+	cargo run --release --locked --bin niri -- completions fish > debian/fish-completions
+	cargo run --release --locked --bin niri -- completions zsh > debian/zsh-completions
+
+override_dh_auto_install:
+	:

@@ -1,0 +1,38 @@
+Source: niri
+Section: x11
+Priority: optional
+Maintainer: Nilesh Kevlani <njkevlani@gmail.com>
+Build-Depends:
+ debhelper-compat (= 13),
+ build-essential,
+ cargo,
+ rustc,
+ pkg-config,
+ clang,
+ libudev-dev,
+ libgbm-dev,
+ libxkbcommon-dev,
+ libegl1-mesa-dev,
+ libwayland-dev,
+ libinput-dev,
+ libdbus-1-dev,
+ libsystemd-dev,
+ libseat-dev,
+ libpipewire-0.3-dev,
+ libpango1.0-dev,
+ libcairo2-dev,
+ libglib2.0-dev,
+ libdisplay-info-dev,
+ libpixman-1-dev
+Standards-Version: 4.7.3
+Rules-Requires-Root: no
+Homepage: https://github.com/YaLTeR/niri
+
+Package: niri
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Suggests: alacritty, bash, fuzzel, mako, org.freedesktop.secrets, swaybg,
+ swaylock, waybar, xwayland-satellite, xdg-desktop-portal-gtk,
+ xdg-desktop-portal-gnome
+Description: Scrollable-tiling Wayland compositor
+ niri is a scrollable-tiling Wayland compositor.

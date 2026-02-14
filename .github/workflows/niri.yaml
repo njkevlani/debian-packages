@@ -1,0 +1,80 @@
+name: Build niri Debian package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "niri release tag"
+        required: true
+        default: "v25.11"
+
+jobs:
+  build-deb:
+    name: Build niri Debian package
+    runs-on: ${{ matrix.runner }}
+    container: debian:sid
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+
+    env:
+      PACKAGE_NAME: niri
+      VERSION: ${{ github.event.inputs.version }}
+      DEB_BUILD_OPTIONS: nocheck
+
+    steps:
+      - name: Checkout packaging repo
+        uses: actions/checkout@v4
+        with:
+          path: packaging
+
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            ca-certificates \
+            curl \
+            dpkg-dev \
+            devscripts \
+            equivs \
+            xz-utils
+          mk-build-deps -i -t "apt-get -y --no-install-recommends" \
+            ./packaging/niri-deb/debian/control
+
+      - name: Prepare Debian packaging
+        run: |
+          set -e
+          UPSTREAM_VERSION="${VERSION#v}"
+          curl -L \
+            -o "niri_${UPSTREAM_VERSION}.orig.tar.gz" \
+            "https://github.com/niri-wm/niri/archive/refs/tags/v${UPSTREAM_VERSION}.tar.gz"
+          tar -xzf "niri_${UPSTREAM_VERSION}.orig.tar.gz"
+          cd "niri-${UPSTREAM_VERSION}"
+
+          cp -a ../packaging/niri-deb/debian ./debian
+          chmod +x debian/rules
+          sed \
+            -e "s/@UPSTREAM_VERSION@/${UPSTREAM_VERSION}/" \
+            -e "s/@DATE@/$(date -R)/" \
+            debian/changelog.in > debian/changelog
+          rm -f debian/changelog.in
+
+      - name: Build Debian package
+        run: |
+          UPSTREAM_VERSION="${VERSION#v}"
+          cd "niri-${UPSTREAM_VERSION}"
+          dpkg-buildpackage -us -uc -b
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: niri-deb-${{ matrix.arch }}
+          path: |
+            niri_*_${{ matrix.arch }}.deb
+            niri_*_${{ matrix.arch }}.buildinfo
+            niri_*_${{ matrix.arch }}.changes

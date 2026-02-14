@@ -1,0 +1,11 @@
+target/release/niri usr/bin/
+resources/niri-session usr/bin/
+resources/niri.service usr/lib/systemd/user/
+resources/niri-shutdown.target usr/lib/systemd/user/
+resources/niri.desktop usr/share/wayland-sessions/
+resources/niri-portals.conf usr/share/xdg-desktop-portal/
+resources/default-config.kdl usr/share/doc/niri/
+README.md usr/share/doc/niri/
+debian/bash-completions usr/share/bash-completion/completions/niri
+debian/fish-completions usr/share/fish/vendor_completions.d/niri.fish
+debian/zsh-completions usr/share/zsh/site-functions/_niri
