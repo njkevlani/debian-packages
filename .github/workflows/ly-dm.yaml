@@ -59,6 +59,13 @@ jobs:
 
           cp -a ../packaging/ly-deb/debian ./debian
           chmod +x debian/rules
+          cat > debian/changelog <<EOF
+          ly (${UPSTREAM_VERSION}-1) unstable; urgency=medium
+
+            * Package upstream release ${VERSION}.
+
+           -- Debian Packaging CI <ci@example.com>  $(date -R)
+          EOF
 
       - name: Build Debian package
         run: |
