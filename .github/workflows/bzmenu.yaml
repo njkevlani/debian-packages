@@ -1,0 +1,93 @@
+name: Build bzmenu for Debian
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "bzmenu release tag"
+        required: true
+        default: "v0.3.0"
+
+permissions:
+  contents: write
+
+jobs:
+  build-deb:
+    name: Build bzmenu Debian package
+    runs-on: ${{ matrix.runner }}
+    container: debian:sid
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+
+    env:
+      VERSION: ${{ github.event.inputs.version }}
+      DEB_BUILD_OPTIONS: nocheck
+
+    steps:
+      - name: Checkout packaging repo
+        uses: actions/checkout@v4
+        with:
+          path: packaging
+
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            ca-certificates \
+            curl \
+            dpkg-dev \
+            devscripts \
+            equivs \
+            xz-utils
+          mk-build-deps -i -t "apt-get -y --no-install-recommends" \
+            ./packaging/bzmenu-deb/debian/control
+
+      - name: Prepare Debian packaging
+        run: |
+          set -e
+          UPSTREAM_VERSION="${VERSION#v}"
+          curl -L \
+            -o "bzmenu_${UPSTREAM_VERSION}.orig.tar.gz" \
+            "https://github.com/e-tho/bzmenu/archive/refs/tags/v${UPSTREAM_VERSION}.tar.gz"
+          tar -xzf "bzmenu_${UPSTREAM_VERSION}.orig.tar.gz"
+          cd "bzmenu-${UPSTREAM_VERSION}"
+
+          cp -a ../packaging/bzmenu-deb/debian ./debian
+          chmod +x debian/rules
+          sed \
+            -e "s/@UPSTREAM_VERSION@/${UPSTREAM_VERSION}/" \
+            -e "s/@DATE@/$(date -R)/" \
+            debian/changelog.in > debian/changelog
+          rm -f debian/changelog.in
+
+      - name: Build Debian package
+        run: |
+          UPSTREAM_VERSION="${VERSION#v}"
+          cd "bzmenu-${UPSTREAM_VERSION}"
+          dpkg-buildpackage -us -uc -b
+          rm -f ../*.buildinfo ../*.changes
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bzmenu-deb-${{ matrix.arch }}
+          path: |
+            bzmenu_*_${{ matrix.arch }}.deb
+
+      - name: Create or update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: bzmenu-${{ env.VERSION }}
+          name: bzmenu ${{ env.VERSION }}
+          draft: false
+          prerelease: false
+          files: |
+            bzmenu_*_${{ matrix.arch }}.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

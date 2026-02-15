@@ -1,0 +1,5 @@
+bzmenu (@UPSTREAM_VERSION@-1) unstable; urgency=medium
+
+  * Automated Debian build.
+
+ -- Debian Packaging CI <ci@example.com>  @DATE@

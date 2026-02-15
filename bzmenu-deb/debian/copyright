@@ -1,0 +1,9 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: bzmenu
+Upstream-Contact: https://github.com/e-tho/bzmenu
+Source: https://github.com/e-tho/bzmenu
+
+Files: *
+Copyright: 2024-2026 e-tho and contributors
+License: GPL-3.0-or-later
+Comment: See LICENSE.md in the upstream source.

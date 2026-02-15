@@ -1,0 +1,20 @@
+Source: bzmenu
+Section: utils
+Priority: optional
+Maintainer: Debian Packaging CI <ci@example.com>
+Build-Depends:
+ debhelper-compat (= 13),
+ cargo,
+ rustc,
+ pkg-config,
+ libdbus-1-dev
+Standards-Version: 4.7.3
+Rules-Requires-Root: no
+Homepage: https://github.com/e-tho/bzmenu
+
+Package: bzmenu
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, bluez, dbus
+Description: Launcher-driven Bluetooth manager for Linux
+ bzmenu is a launcher-driven Bluetooth manager that integrates with
+ dmenu, rofi, fuzzel, walker, and custom launchers.
