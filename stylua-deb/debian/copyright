@@ -1,0 +1,9 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: stylua
+Upstream-Contact: https://github.com/JohnnyMorganz/StyLua
+Source: https://github.com/JohnnyMorganz/StyLua
+
+Files: *
+Copyright: 2020-2026 JohnnyMorganz and contributors
+License: MPL-2.0
+Comment: See LICENSE.md in the upstream source.
