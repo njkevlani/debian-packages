@@ -1,0 +1,24 @@
+#!/usr/bin/make -f
+export DH_VERBOSE = 1
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	npm ci --ignore-scripts
+	npm run compile
+
+override_dh_auto_install:
+	npm prune --omit=dev
+	install -d "$(CURDIR)/debian/yaml-language-server/usr/lib/node_modules/yaml-language-server"
+	cp -a \
+	  bin \
+	  l10n \
+	  node_modules \
+	  out \
+	  package.json \
+	  "$(CURDIR)/debian/yaml-language-server/usr/lib/node_modules/yaml-language-server/"
+	install -d "$(CURDIR)/debian/yaml-language-server/usr/bin"
+	ln -sf /usr/lib/node_modules/yaml-language-server/bin/yaml-language-server \
+	  "$(CURDIR)/debian/yaml-language-server/usr/bin/yaml-language-server"

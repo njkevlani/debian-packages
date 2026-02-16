@@ -1,0 +1,18 @@
+Source: yaml-language-server
+Section: devel
+Priority: optional
+Maintainer: Debian Packaging CI <ci@example.com>
+Build-Depends:
+ debhelper-compat (= 13),
+ nodejs,
+ npm
+Standards-Version: 4.7.3
+Rules-Requires-Root: no
+Homepage: https://github.com/redhat-developer/yaml-language-server
+
+Package: yaml-language-server
+Architecture: all
+Depends: ${misc:Depends}, nodejs
+Description: YAML Language Server
+ YAML language server providing completion, validation, hover, and other
+ IDE features over the Language Server Protocol.
