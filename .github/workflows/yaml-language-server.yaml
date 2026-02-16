@@ -52,6 +52,7 @@ jobs:
 
           cp -a ../packaging/yaml-language-server-deb/debian ./debian
           chmod +x debian/rules
+          patch -Np1 --forward < debian/patches/0001-vscode-l10n-is-a-runtime-dependency.patch || true
           sed \
             -e "s/@UPSTREAM_VERSION@/${UPSTREAM_VERSION}/" \
             -e "s/@DATE@/$(date -R)/" \
