@@ -25,3 +25,7 @@ override_dh_auto_install:
 	ln -sf /usr/lib/node_modules/bash-language-server/out/cli.js \
 	  "$(CURDIR)/debian/bash-language-server/usr/bin/bash-language-server"
 	install -Dm644 LICENSE "$(CURDIR)/debian/bash-language-server/usr/share/licenses/bash-language-server/LICENSE"
+
+override_dh_fixperms:
+	dh_fixperms
+	chmod 0755 "$(CURDIR)/debian/bash-language-server/usr/lib/node_modules/bash-language-server/out/cli.js"
