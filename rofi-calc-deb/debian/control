@@ -17,7 +17,7 @@ Homepage: https://github.com/svenstaro/rofi-calc
 
 Package: rofi-calc
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, rofi, qalculate-cli
+Depends: ${shlibs:Depends}, ${misc:Depends}, rofi, qalc
 Suggests: qalculate-gtk
 Description: Rofi mode that evaluates calculations via qalc
  rofi-calc is a rofi plugin that evaluates expressions using qalc.
