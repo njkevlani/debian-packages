@@ -1,0 +1,85 @@
+name: Build bash-language-server for Debian
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "bash-language-server release tag"
+        required: true
+        default: "5.6.0"
+
+permissions:
+  contents: write
+
+jobs:
+  build-deb:
+    name: Build bash-language-server Debian package
+    runs-on: ubuntu-24.04
+    container: debian:sid
+
+    env:
+      VERSION: ${{ github.event.inputs.version }}
+      DEB_BUILD_OPTIONS: nocheck
+
+    steps:
+      - name: Checkout packaging repo
+        uses: actions/checkout@v4
+        with:
+          path: packaging
+
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            ca-certificates \
+            curl \
+            dpkg-dev \
+            devscripts \
+            equivs \
+            xz-utils
+          mk-build-deps -i -t "apt-get -y --no-install-recommends" \
+            ./packaging/bash-language-server-deb/debian/control
+
+      - name: Prepare Debian packaging
+        run: |
+          set -e
+          UPSTREAM_VERSION="${VERSION#v}"
+          curl -L \
+            -o "bash-language-server_${UPSTREAM_VERSION}.orig.tar.gz" \
+            "https://github.com/bash-lsp/bash-language-server/archive/refs/tags/server-${UPSTREAM_VERSION}.tar.gz"
+          tar -xzf "bash-language-server_${UPSTREAM_VERSION}.orig.tar.gz"
+          cd "bash-language-server-server-${UPSTREAM_VERSION}"
+
+          cp -a ../packaging/bash-language-server-deb/debian ./debian
+          chmod +x debian/rules
+          sed \
+            -e "s/@UPSTREAM_VERSION@/${UPSTREAM_VERSION}/" \
+            -e "s/@DATE@/$(date -R)/" \
+            debian/changelog.in > debian/changelog
+          rm -f debian/changelog.in
+
+      - name: Build Debian package
+        run: |
+          UPSTREAM_VERSION="${VERSION#v}"
+          cd "bash-language-server-server-${UPSTREAM_VERSION}"
+          dpkg-buildpackage -us -uc -b
+          rm -f ../*.buildinfo ../*.changes
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bash-language-server-deb
+          path: |
+            bash-language-server_*_all.deb
+
+      - name: Create or update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: bash-language-server-${{ env.VERSION }}
+          name: bash-language-server ${{ env.VERSION }}
+          draft: false
+          prerelease: false
+          files: |
+            bash-language-server_*_all.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
