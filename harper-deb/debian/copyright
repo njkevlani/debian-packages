@@ -1,9 +1,0 @@
-Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: harper
-Upstream-Contact: https://github.com/Automattic/harper
-Source: https://github.com/Automattic/harper
-
-Files: *
-Copyright: 2023-2026 Automattic and contributors
-License: Apache-2.0
-Comment: See LICENSE in the upstream source.
