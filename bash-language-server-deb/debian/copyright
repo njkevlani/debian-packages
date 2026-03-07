@@ -1,9 +1,0 @@
-Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: bash-language-server
-Upstream-Contact: https://github.com/bash-lsp/bash-language-server
-Source: https://github.com/bash-lsp/bash-language-server
-
-Files: *
-Copyright: 2017-2026 bash-language-server contributors
-License: MIT
-Comment: See LICENSE in the upstream source.

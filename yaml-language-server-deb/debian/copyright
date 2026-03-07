@@ -1,9 +1,0 @@
-Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: yaml-language-server
-Upstream-Contact: https://github.com/redhat-developer/yaml-language-server
-Source: https://github.com/redhat-developer/yaml-language-server
-
-Files: *
-Copyright: 2018-2026 Red Hat and contributors
-License: MIT
-Comment: See LICENSE in the upstream source.

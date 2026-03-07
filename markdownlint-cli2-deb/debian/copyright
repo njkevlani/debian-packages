@@ -1,9 +1,0 @@
-Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: markdownlint-cli2
-Upstream-Contact: https://github.com/DavidAnson/markdownlint-cli2
-Source: https://github.com/DavidAnson/markdownlint-cli2
-
-Files: *
-Copyright: 2018-2026 David Anson and contributors
-License: MIT
-Comment: See LICENSE in the upstream source.
