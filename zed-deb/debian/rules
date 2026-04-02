@@ -1,0 +1,40 @@
+#!/usr/bin/make -f
+export DH_VERBOSE = 1
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+export GIT_DISCOVERY_ACROSS_FILESYSTEM = 1
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	arch=$$(dpkg-architecture -qDEB_HOST_ARCH); \
+	if [ "$$arch" = "amd64" ]; then \
+	  export REMOTE_SERVER_TARGET=x86_64-unknown-linux-gnu; \
+	  bundle_arch=x86_64; \
+	elif [ "$$arch" = "arm64" ]; then \
+	  export REMOTE_SERVER_TARGET=aarch64-unknown-linux-gnu; \
+	  bundle_arch=aarch64; \
+	else \
+	  echo "Unsupported arch: $$arch"; \
+	  exit 1; \
+	fi; \
+	if [ ! -f "target/release/zed-linux-$${bundle_arch}.tar.gz" ]; then \
+	  ./script/bundle-linux; \
+	fi; \
+	echo "$$bundle_arch" > debian/bundle-arch
+
+override_dh_auto_install:
+	bundle_arch=$$(cat debian/bundle-arch); \
+	install -d debian/zed/usr/lib; \
+	tar -xzf target/release/zed-linux-$${bundle_arch}.tar.gz -C debian/zed/usr/lib; \
+	app_dir=$$(find debian/zed/usr/lib -maxdepth 1 -type d -name 'zed*.app' -print -quit); \
+	if [ -z "$$app_dir" ]; then \
+	  echo "Zed app bundle not found"; \
+	  exit 1; \
+	fi; \
+	mv "$$app_dir" debian/zed/usr/lib/zed.app; \
+	install -d debian/zed/usr/share; \
+	cp -a debian/zed/usr/lib/zed.app/share/* debian/zed/usr/share/
+
+override_dh_auto_test:
+	:

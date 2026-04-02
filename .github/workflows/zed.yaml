@@ -1,0 +1,134 @@
+name: Build Zed for Debian
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Zed git ref (branch, tag, or sha)"
+        required: true
+        default: "v0.230.0"
+
+permissions:
+  contents: write
+
+
+jobs:
+  build:
+    name: Build
+    runs-on: ${{ matrix.runner }}
+    container: debian:sid
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+            remote_server_target: x86_64-unknown-linux-gnu
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+            remote_server_target: aarch64-unknown-linux-gnu
+
+    env:
+      REF: ${{ github.event.inputs.ref }}
+      DEB_BUILD_OPTIONS: nocheck
+      GIT_DISCOVERY_ACROSS_FILESYSTEM: "1"
+
+    steps:
+      - name: Install base packages
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            ca-certificates \
+            curl \
+            dpkg-dev \
+            devscripts \
+            equivs \
+            git \
+            xz-utils
+
+      - name: Checkout packaging repo
+        uses: actions/checkout@v5
+        with:
+          path: packaging
+
+      - name: Install Debian build dependencies
+        run: |
+          mk-build-deps -i -t "apt-get -y --no-install-recommends" \
+            ./packaging/zed-deb/debian/control
+
+      - name: Checkout Zed
+        uses: actions/checkout@v5
+        with:
+          repository: zed-industries/zed
+          ref: ${{ inputs.ref }}
+          path: zed
+          fetch-depth: 0
+
+      - name: Install Zed build dependencies
+        run: ./script/linux
+        working-directory: zed
+
+      - name: Add Rust to PATH
+        run: echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            zed -> target
+          cache-on-failure: true
+
+      - name: Build Zed bundle
+        run: |
+          . "$HOME/.cargo/env"
+          ./script/bundle-linux
+        working-directory: zed
+        env:
+          REMOTE_SERVER_TARGET: ${{ matrix.remote_server_target }}
+
+      - name: Prepare Debian packaging
+        run: |
+          set -e
+          UPSTREAM_VERSION="${REF#v}"
+          cp -a ../packaging/zed-deb/debian ./debian
+          chmod +x debian/rules
+          cat > debian/changelog <<EOF
+          zed (${UPSTREAM_VERSION}-1) unstable; urgency=medium
+
+            * Package upstream release ${REF}.
+
+           -- Debian Packaging CI <ci@example.com>  $(date -R)
+          EOF
+        working-directory: zed
+
+      - name: Build Debian package
+        run: |
+          dpkg-buildpackage -us -uc -b
+        working-directory: zed
+
+      - name: Upload Debian artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: zed-deb-${{ matrix.arch }}
+          path: |
+            zed_*_${{ matrix.arch }}.deb
+
+      - name: Upload bundle artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: zed-linux-${{ matrix.arch }}-${{ inputs.ref }}
+          path: |
+            zed/target/release/zed-linux-*.tar.gz
+
+      - name: Create or update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: zed-${{ env.REF }}
+          name: zed ${{ env.REF }}
+          draft: false
+          prerelease: false
+          files: |
+            zed_*_${{ matrix.arch }}.deb
+            zed/target/release/zed-linux-*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
