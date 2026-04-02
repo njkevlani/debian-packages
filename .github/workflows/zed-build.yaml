@@ -12,11 +12,22 @@ on:
         required: true
         default: "main"
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   build-zed:
     name: Build Zed
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.runner }}
     container: debian:sid
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
     steps:
       - name: Checkout Zed
         uses: actions/checkout@v4
@@ -37,16 +48,15 @@ jobs:
         run: ./script/linux
         working-directory: zed
 
-      - name: Build Zed binaries
+      - name: Build Zed bundle
         run: |
           . "$HOME/.cargo/env"
-          cargo build --release -p cli -p zed
+          ./script/bundle-linux
         working-directory: zed
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: zed-linux-${{ inputs.ref }}
+          name: zed-linux-${{ matrix.arch }}-${{ inputs.ref }}
           path: |
-            zed/target/release/cli
-            zed/target/release/zed
+            zed/target/release/zed-linux-*.tar.gz
