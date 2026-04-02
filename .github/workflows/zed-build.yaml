@@ -28,13 +28,6 @@ jobs:
           - arch: arm64
             runner: ubuntu-24.04-arm
     steps:
-      - name: Checkout Zed
-        uses: actions/checkout@v5
-        with:
-          repository: ${{ inputs.repository }}
-          ref: ${{ inputs.ref }}
-          path: zed
-
       - name: Install base packages
         run: |
           apt-get update
@@ -42,6 +35,14 @@ jobs:
             ca-certificates \
             curl \
             git
+
+      - name: Checkout Zed
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ inputs.repository }}
+          ref: ${{ inputs.ref }}
+          path: zed
+          fetch-depth: 0
 
       - name: Install Zed build dependencies
         run: ./script/linux
