@@ -46,6 +46,13 @@ jobs:
           path: zed
           fetch-depth: 0
 
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            zed -> target
+          cache-on-failure: true
+
       - name: Install Zed build dependencies
         run: ./script/linux
         working-directory: zed
