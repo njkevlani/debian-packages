@@ -1,0 +1,52 @@
+name: Build Zed (Linux)
+
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: "Zed repository"
+        required: true
+        default: "zed-industries/zed"
+      ref:
+        description: "Git ref (branch, tag, or sha)"
+        required: true
+        default: "main"
+
+jobs:
+  build-zed:
+    name: Build Zed
+    runs-on: ubuntu-24.04
+    container: debian:sid
+    steps:
+      - name: Checkout Zed
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.repository }}
+          ref: ${{ inputs.ref }}
+          path: zed
+
+      - name: Install base packages
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            ca-certificates \
+            curl \
+            git
+
+      - name: Install Zed build dependencies
+        run: ./script/linux
+        working-directory: zed
+
+      - name: Build Zed binaries
+        run: |
+          . "$HOME/.cargo/env"
+          cargo build --release -p cli -p zed
+        working-directory: zed
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: zed-linux-${{ inputs.ref }}
+          path: |
+            zed/target/release/cli
+            zed/target/release/zed
