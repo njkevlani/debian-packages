@@ -71,6 +71,9 @@ jobs:
         run: ./script/linux
         working-directory: zed
 
+      - name: Add Rust to PATH
+        run: echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
       - name: Cache Rust build
         uses: Swatinem/rust-cache@v2
         with:
