@@ -89,7 +89,12 @@ jobs:
       - name: Prepare Debian packaging
         run: |
           set -e
-          UPSTREAM_VERSION="${REF#v}"
+          if printf '%s' "$REF" | grep -qE '^[vV]?[0-9]'; then
+            UPSTREAM_VERSION="${REF#v}"
+          else
+            SHORT_SHA=$(git -C . rev-parse --short HEAD)
+            UPSTREAM_VERSION="0+git$(date -u +%Y%m%d).${SHORT_SHA}"
+          fi
           cp -a ../packaging/zed-deb/debian ./debian
           chmod +x debian/rules
           cat > debian/changelog <<EOF
