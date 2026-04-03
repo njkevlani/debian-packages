@@ -1,0 +1,24 @@
+Source: zed
+Section: editors
+Priority: optional
+Maintainer: Debian Packaging CI <ci@example.com>
+Build-Depends:
+ debhelper-compat (= 13),
+ build-essential,
+ pkg-config,
+ clang,
+ lld,
+ cmake,
+ python3,
+ git,
+ curl,
+ ca-certificates
+Standards-Version: 4.7.3
+Rules-Requires-Root: no
+Homepage: https://zed.dev
+
+Package: zed
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: High-performance, multiplayer code editor
+ Zed is a fast, collaborative code editor built in Rust.

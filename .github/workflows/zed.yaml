@@ -59,6 +59,11 @@ jobs:
         with:
           path: packaging
 
+      - name: Install Debian build dependencies
+        run: |
+          mk-build-deps -i -t "apt-get -y --no-install-recommends" \
+            ./packaging/zed-deb/debian/control
+
       - name: Checkout Zed
         uses: actions/checkout@v5
         with:
@@ -93,12 +98,6 @@ jobs:
         run: |
           set -e
           UPSTREAM_VERSION="${VERSION#v}"
-          curl -L \
-            -o "zed_${UPSTREAM_VERSION}.orig.tar.gz" \
-            "https://github.com/zed-industries/zed/archive/refs/tags/${VERSION}.tar.gz"
-          tar -xzf "zed_${UPSTREAM_VERSION}.orig.tar.gz"
-          cd "zed-${UPSTREAM_VERSION}"
-
           cp -a ../packaging/zed-deb/debian ./debian
           chmod +x debian/rules
           cat > debian/changelog <<EOF
@@ -108,12 +107,12 @@ jobs:
 
            -- Debian Packaging CI <ci@example.com>  $(date -R)
           EOF
+        working-directory: zed
 
       - name: Build Debian package
         run: |
-          UPSTREAM_VERSION="${VERSION#v}"
-          cd "zed-${UPSTREAM_VERSION}"
           dpkg-buildpackage -us -uc -b
+        working-directory: zed
 
       - name: Upload Debian artifact
         uses: actions/upload-artifact@v6
