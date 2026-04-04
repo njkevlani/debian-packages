@@ -31,20 +31,17 @@ jobs:
     env:
       REF: ${{ github.event.inputs.ref }}
       DEB_BUILD_OPTIONS: nocheck
-      GIT_DISCOVERY_ACROSS_FILESYSTEM: "1"
 
     steps:
       - name: Install base packages
         run: |
           apt-get update
           apt-get install -y --no-install-recommends \
-            ca-certificates \
             curl \
             dpkg-dev \
             devscripts \
             equivs \
-            git \
-            xz-utils
+            git
 
       - name: Checkout packaging repo
         uses: actions/checkout@v5
@@ -70,13 +67,6 @@ jobs:
 
       - name: Add Rust to PATH
         run: echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-
-      - name: Cache Rust build
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: |
-            zed -> target
-          cache-on-failure: true
 
       - name: Build Zed bundle
         run: |
